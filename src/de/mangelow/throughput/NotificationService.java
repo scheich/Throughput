@@ -32,10 +32,11 @@ import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.TrafficStats;
-import android.net.NetworkInfo.State;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.provider.Settings;
@@ -58,7 +59,6 @@ public class NotificationService extends Service {
 
 	public static int NOTIFICATION_ID = 347893278;
 
-	private ConnectivityManager cmanager;
 	private TelephonyManager tmanager;
 	private WifiManager wmanager;
 
@@ -94,6 +94,8 @@ public class NotificationService extends Service {
 		int [] refresh_values = res.getIntArray(R.array.refresh_values);
 		long refresh = (long) refresh_values[MainActivity.loadIntPref(context, MainActivity.REFRESH, MainActivity.REFRESH_DEFAULT)];
 
+		modifyNotification(R.drawable.ic_stat_zero, null, "", "", new Intent());
+		
 		handler = new Handler();
 		handler.postDelayed(mRunnable, refresh);
 
@@ -117,7 +119,6 @@ public class NotificationService extends Service {
 	}
 	private final Runnable mRunnable = new Runnable() {
 
-		@SuppressWarnings("deprecation")
 		public void run() {
 
 			int drawable = R.drawable.ic_stat_zero;
@@ -155,13 +156,7 @@ public class NotificationService extends Service {
 
 			try {
 
-
-				if(cmanager==null)cmanager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-
-				State state_mobile = cmanager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState();
-				State state_wifi = cmanager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState();
-
-				if(state_mobile==State.CONNECTED) {
+				if(getNetworkState(ConnectivityManager.TYPE_MOBILE)) {
 
 					if(ontap==0)i = new Intent(Settings.ACTION_DATA_ROAMING_SETTINGS);
 
@@ -207,7 +202,7 @@ public class NotificationService extends Service {
 					if(quality_string.length()>0)subtitle += " " + quality_string;
 
 				}
-				else if(state_wifi==State.CONNECTED) {
+				else if(getNetworkState(ConnectivityManager.TYPE_WIFI)) {
 
 					if(ontap==0)i = new Intent(WifiManager.ACTION_PICK_WIFI_NETWORK);
 
@@ -261,7 +256,7 @@ public class NotificationService extends Service {
 					if(quality_string.length()>0)subtitle += " " + quality_string;
 
 				}
-				else if(showonairplanemode && Settings.System.getInt(getContentResolver(), Settings.System.AIRPLANE_MODE_ON, 0) == 1) {
+				else if(showonairplanemode && isAirplaneModeOn(context)) {
 					drawable = R.drawable.ic_stat_apmode;
 					title = res.getString(R.string.airplane_mode);
 
@@ -298,7 +293,9 @@ public class NotificationService extends Service {
 							float divide = (float) refresh / 1000;
 							try {
 								in = (long) (rxBytes / divide);
-							} catch (Exception e) {}
+							} catch (Exception e) {
+								if(D)e.printStackTrace();
+							}
 
 							String per = refresh + "ms";
 							if(divide % 1 == 0) {
@@ -317,7 +314,9 @@ public class NotificationService extends Service {
 							divide = (float) refresh / 1000;
 							try {
 								out = (long) (txBytes / divide);
-							} catch (Exception e) {}
+							} catch (Exception e) {
+								if(D)e.printStackTrace();
+							}
 
 							title += " | " + humanReadableByteCount(out, showbitsorbytes) + "/" + per + " " + res.getString(R.string.out);
 
@@ -410,7 +409,37 @@ public class NotificationService extends Service {
 	}
 
 	//
+	
+	@SuppressWarnings("deprecation")
+	private boolean isAirplaneModeOn(Context context) {
 
+	    if (Build.VERSION.SDK_INT < 17) {
+	        return Settings.System.getInt(context.getContentResolver(), 
+	                Settings.System.AIRPLANE_MODE_ON, 0) != 0;          
+	    } else {
+	        return Settings.Global.getInt(context.getContentResolver(), 
+	                Settings.Global.AIRPLANE_MODE_ON, 0) != 0;
+	    }       
+	}
+	private boolean getNetworkState(int type) {
+        ConnectivityManager connect = null;
+        connect =  (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        if(connect != null)
+        {
+            NetworkInfo result = connect.getNetworkInfo(type);
+            if (result != null && result.isConnected())
+            {
+                return true;
+            }
+            else 
+            {
+                return false;
+            }
+        }
+        else
+            return false;
+    }
 	private String getIPAddress() {
 
 		try {
