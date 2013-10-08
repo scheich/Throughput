@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Throughput</string>
+    <string name="in">in</string>
+    <string name="out">out</string>
+    <string name="traffic_unsupported">Your device does not support traffic stat monitoring.</string>
+    <string name="airplane_mode">Airplane mode</string>
+    <string name="enable">Enable</string>
+    <string name="enable_text">Check to run now and on boot.</string>
+    <string name="showonairplanemode">Also on Airplane mode</string>
+    <string name="showonairplanemode_text">Show the notification also on airplane mode</string>
+    <string name="showticker">Ticker</string>
+    <string name="showticker_text">Display a ticker message on network change</string>
+    <string name="showsignalstrength">Signal strength</string>
+    <string name="showsignalstrength_text">Show the signal strength in procent</string>
+    <string name="showssidsubtype">Networktype</string>
+    <string name="showssidsubtype_text">Show your current network subtype or the access point name</string>
+    <string name="showwifilinkspeed">Wifi link speed</string>
+    <string name="showwifilinkspeed_text">Show theoretical wifi throughput</string>
+    <string name="showipaddress">IPV4 address</string>
+    <string name="showipaddress_text">Display your IPV4 address</string>
+    <string name="showcells">Neighbor cell count</string>
+    <string name="showcells_text">Show the count of neighbor cells</string>
+    <string name="showbitsorbytes">Bits or Bytes?</string>
+    <string name="showbitsorbytes_text">Uncheck to use bits</string>
+    <string name="refresh">Refresh every</string>
+    <string name="ontap">Action on tap</string>
+
+    <plurals name="cells">
+        <item quantity="zero">0 cells</item>
+        <item quantity="one">1 cell</item>
+        <item quantity="other">%d cells</item>
+    </plurals>
+
+</resources>

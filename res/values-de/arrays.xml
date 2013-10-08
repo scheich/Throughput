@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="refresh">
+        <item>500 ms</item>
+        <item>750 ms</item>
+        <item>Sekunde</item>
+        <item>2 Sekunden</item>
+        <item>3 Sekunden</item>
+    </string-array>
+    <string-array name="ontap">
+        <item>Die entsprechende Systemeinstellung öffnen</item>
+        <item>Diese App öffnen</item>
+        <item>Nichts unternehmen</item>
+    </string-array>
+
+</resources>
