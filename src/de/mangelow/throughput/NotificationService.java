@@ -17,15 +17,17 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import org.apache.http.conn.util.InetAddressUtils;
 
-import android.annotation.SuppressLint;
 import android.app.Notification;
+import android.app.Notification.Builder;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -50,15 +52,16 @@ import android.util.Log;
 public class NotificationService extends Service {
 
 	private final String TAG = "TP";
-	private final boolean D = true;
+	private final boolean D = false;
 
 	private Context context;
 	private Resources res;
 
 	private Handler handler;
 
+	private Builder nb;
 	public static int NOTIFICATION_ID = 347893278;
-
+	
 	private TelephonyManager tmanager;
 	private WifiManager wmanager;
 
@@ -95,7 +98,7 @@ public class NotificationService extends Service {
 		long refresh = (long) refresh_values[MainActivity.loadIntPref(context, MainActivity.REFRESH, MainActivity.REFRESH_DEFAULT)];
 
 		modifyNotification(R.drawable.ic_stat_zero, null, "", "", new Intent());
-		
+
 		handler = new Handler();
 		handler.postDelayed(mRunnable, refresh);
 
@@ -158,7 +161,11 @@ public class NotificationService extends Service {
 
 				if(getNetworkState(ConnectivityManager.TYPE_MOBILE)) {
 
-					if(ontap==0)i = new Intent(Settings.ACTION_DATA_ROAMING_SETTINGS);
+					if(ontap==0) {
+						i = new Intent(Settings.ACTION_DATA_ROAMING_SETTINGS);
+						ComponentName cName = new ComponentName("com.android.phone","com.android.phone.Settings");
+						i.setComponent(cName); 
+					}
 
 					List<NeighboringCellInfo> l_ncells = tmanager.getNeighboringCellInfo();
 					int ncells = l_ncells.size();
@@ -303,7 +310,9 @@ public class NotificationService extends Service {
 								if(divide==1.0f)per = "s";
 							}
 
-							title = humanReadableByteCount(in, showbitsorbytes) + "/" + per  + " " +  res.getString(R.string.in);
+							String humanreadable = humanReadableByteCount(in, showbitsorbytes);
+							if(humanreadable.contains("-"))humanreadable="0.0";
+							title = humanreadable + "/" + per  + " " +  res.getString(R.string.in);
 
 							long txBytes = mStartTX - last_tx;
 							last_tx = TrafficStats.getTotalTxBytes();
@@ -318,7 +327,9 @@ public class NotificationService extends Service {
 								if(D)e.printStackTrace();
 							}
 
-							title += " | " + humanReadableByteCount(out, showbitsorbytes) + "/" + per + " " + res.getString(R.string.out);
+							humanreadable = humanReadableByteCount(out, showbitsorbytes);
+							if(humanreadable.contains("-"))humanreadable="0.0";
+							title += " | " + humanreadable + "/" + per + " " + res.getString(R.string.out);
 
 							if(in==0&&out>0)drawable = R.drawable.ic_stat_out;
 							if(out==0&&in>0)drawable = R.drawable.ic_stat_in;
@@ -386,19 +397,40 @@ public class NotificationService extends Service {
 
 	@SuppressWarnings("deprecation")
 	private void modifyNotification(int drawable, String ticker, String title, String subtitle, Intent i) {
-
+		
 		boolean showticker = MainActivity.loadBooleanPref(context, MainActivity.SHOWTICKER, MainActivity.SHOWTICKER_DEFAULT);
 		if(!showticker)ticker = null;
 
 		NotificationManager nmanager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-		Notification n = null;
 		PendingIntent pi = PendingIntent.getActivity(this, 0, i, NOTIFICATION_ID);
-		n = new Notification(drawable, ticker, System.currentTimeMillis());
-		n.flags |= Notification.FLAG_NO_CLEAR;	
-
-		n.setLatestEventInfo(this, title, subtitle, pi);
-
+		Notification n = null;
+		
+		if (Build.VERSION.SDK_INT < 11) {
+			
+			n = new Notification(drawable, ticker, System.currentTimeMillis());
+			n.flags |= Notification.FLAG_NO_CLEAR;	
+			n.setLatestEventInfo(this, title, subtitle, pi);
+			
+		}
+		else {
+			
+			if(nb==null) {
+				nb = new Notification.Builder(context);
+			    nb.setPriority(Notification.PRIORITY_LOW);
+				nb.setAutoCancel(true);
+			}
+			
+			nb.setSmallIcon(drawable);
+			if(ticker!=null)nb.setTicker(ticker);
+			nb.setContentTitle(title);
+			nb.setContentText(subtitle);
+			nb.setContentIntent(pi);
+			
+			n = nb.build();
+			n.flags = Notification.FLAG_NO_CLEAR;
+			
+		}		
+		
 		nmanager.notify(NOTIFICATION_ID, n);
 
 	}	
@@ -409,37 +441,37 @@ public class NotificationService extends Service {
 	}
 
 	//
-	
+
 	@SuppressWarnings("deprecation")
 	private boolean isAirplaneModeOn(Context context) {
 
-	    if (Build.VERSION.SDK_INT < 17) {
-	        return Settings.System.getInt(context.getContentResolver(), 
-	                Settings.System.AIRPLANE_MODE_ON, 0) != 0;          
-	    } else {
-	        return Settings.Global.getInt(context.getContentResolver(), 
-	                Settings.Global.AIRPLANE_MODE_ON, 0) != 0;
-	    }       
+		if (Build.VERSION.SDK_INT < 17) {
+			return Settings.System.getInt(context.getContentResolver(), 
+					Settings.System.AIRPLANE_MODE_ON, 0) != 0;          
+		} else {
+			return Settings.Global.getInt(context.getContentResolver(), 
+					Settings.Global.AIRPLANE_MODE_ON, 0) != 0;
+		}       
 	}
 	private boolean getNetworkState(int type) {
-        ConnectivityManager connect = null;
-        connect =  (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+		ConnectivityManager connect = null;
+		connect =  (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
-        if(connect != null)
-        {
-            NetworkInfo result = connect.getNetworkInfo(type);
-            if (result != null && result.isConnected())
-            {
-                return true;
-            }
-            else 
-            {
-                return false;
-            }
-        }
-        else
-            return false;
-    }
+		if(connect != null)
+		{
+			NetworkInfo result = connect.getNetworkInfo(type);
+			if (result != null && result.isConnected())
+			{
+				return true;
+			}
+			else 
+			{
+				return false;
+			}
+		}
+		else
+			return false;
+	}
 	private String getIPAddress() {
 
 		try {
@@ -526,12 +558,11 @@ public class NotificationService extends Service {
 		return subtype;
 	}
 
-	@SuppressLint("DefaultLocale")
 	private String humanReadableByteCount(long bytes, boolean si) {
 		int unit = si ? 1000 : 1024;
 		if (bytes < unit) return bytes + " B";
 		int exp = (int) (Math.log(bytes) / Math.log(unit));
 		String pre = (si ? "kMGTPE" : "KMGTPE").charAt(exp-1) + (si ? "" : "i");
-		return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
+		return String.format(Locale.US, "%.1f %sB", bytes / Math.pow(unit, exp), pre);
 	}
 }
