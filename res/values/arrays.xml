@@ -17,13 +17,13 @@
         <item>3000</item>
     </integer-array>
 
-    <string-array name="threshold">
-        <item>Zero (> 0 bytes)</item>
-        <item>More equal than 256 bytes</item>
-        <item>More equal than 512 bytes</item>
-        <item>More equal than 1024 bytes</item>
-        <item>More equal than 2048 bytes</item>
-        <item>More equal than 4096 bytes</item>
+     <string-array name="threshold">
+        <item>>0 bytes (bits)</item>
+        <item>>256 bytes (2048 bits)</item>
+        <item>>512 bytes (4096 bits)</item>
+        <item>>1024 bytes (8192 bits)</item>
+        <item>>2048 bytes (16384 bits)</item>
+        <item>>4096 bytes (32768 bits)</item>
     </string-array>
 
     <integer-array name="threshold_values">

@@ -64,6 +64,9 @@ public class MainActivity extends PreferenceActivity {
 	public static final String SHOWONAIRPLANEMODE = "showonairplanemode";
 	public static final boolean SHOWONAIRPLANEMODE_DEFAULT = true;
 
+	public static final String SHOWAPPNAME = "showappname";
+	public static final boolean SHOWAPPNAME_DEFAULT = false;
+	
 	public static final String REFRESH = "refresh";
 	public static final int REFRESH_DEFAULT = 2;
 
@@ -140,6 +143,7 @@ public class MainActivity extends PreferenceActivity {
 		boolean showsignalstrength = MainActivity.loadBooleanPref(context, MainActivity.SHOWSIGNALSTRENGTH, MainActivity.SHOWSIGNALSTRENGTH_DEFAULT);
 		boolean showonairplanemode = MainActivity.loadBooleanPref(context, MainActivity.SHOWONAIRPLANEMODE, MainActivity.SHOWONAIRPLANEMODE_DEFAULT);
 		boolean showbitsorbytes = MainActivity.loadBooleanPref(context, MainActivity.SHOWBITSORBYTES, MainActivity.SHOWBITSORBYTES_DEFAULT);
+		boolean showappname = MainActivity.loadBooleanPref(context, MainActivity.SHOWAPPNAME, MainActivity.SHOWAPPNAME_DEFAULT);
 
 		pc_settings.setEnabled(enabled);
 		root.addPreference(pc_settings);
@@ -248,6 +252,19 @@ public class MainActivity extends PreferenceActivity {
 		});
 		pc_settings.addPreference(cbp_showbitsorbytes);
 
+		final CheckBoxPreference cbp_showappname = new CheckBoxPreference(context);
+		cbp_showappname.setTitle(res.getString(R.string.showappname));
+		cbp_showappname.setSummary(res.getString(R.string.showappname_text));
+		cbp_showappname.setChecked(showappname);
+		cbp_showappname.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+			public boolean onPreferenceChange(Preference p, Object o) {
+				boolean newvalue = Boolean.parseBoolean(o.toString());
+				saveBooleanPref(context, SHOWAPPNAME, newvalue);				
+				return true;
+			}
+		});
+		pc_settings.addPreference(cbp_showappname);
+		
 		int refresh = loadIntPref(context, REFRESH, REFRESH_DEFAULT);
 
 		final String [] refresh_entries = res.getStringArray(R.array.refresh);

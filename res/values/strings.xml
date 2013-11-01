@@ -26,8 +26,10 @@
     <string name="showbitsorbytes_text">Uncheck to use bits</string>
     <string name="refresh">Refresh every</string>
     <string name="ontap">Action on tap</string>
-    <string name="threshold">Throughput threshold</string>
-    
+    <string name="threshold">Threshold</string>
+    <string name="showappname">Most Active App</string>
+    <string name="showappname_text">Show the name of the app that is most active (+x others)</string>
+
     <plurals name="cells">
         <item quantity="zero">0 cells</item>
         <item quantity="one">1 cell</item>

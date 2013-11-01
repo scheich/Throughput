@@ -8,14 +8,6 @@
         <item>2 Sekunden</item>
         <item>3 Sekunden</item>
     </string-array>
-    <string-array name="threshold">
-        <item>Nullschwelle (> 0 bytes)</item>
-        <item>Größer-gleich 256 bytes</item>
-        <item>Größer-gleich 512 bytes</item>
-        <item>Größer-gleich 1024 bytes</item>
-        <item>Größer-gleich 2048 bytes</item>
-        <item>Größer-gleich 4096 bytes</item>
-    </string-array>
     <string-array name="ontap">
         <item>Die entsprechende Systemeinstellung öffnen</item>
         <item>Diese App öffnen</item>

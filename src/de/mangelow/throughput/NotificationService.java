@@ -16,13 +16,16 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
 import org.apache.http.conn.util.InetAddressUtils;
 
 import android.app.Notification;
+import android.app.ActivityManager.RunningAppProcessInfo;
 import android.app.Notification.Builder;
+import android.app.ActivityManager;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -31,7 +34,9 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.res.Configuration;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -46,13 +51,12 @@ import android.telephony.NeighboringCellInfo;
 import android.telephony.PhoneStateListener;
 import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
-import android.util.DisplayMetrics;
 import android.util.Log;
 
 public class NotificationService extends Service {
 
 	private final String TAG = "TP";
-	private final boolean D = false;
+	private final boolean D = true;
 
 	private Context context;
 	private Resources res;
@@ -64,6 +68,8 @@ public class NotificationService extends Service {
 
 	private TelephonyManager tmanager;
 	private WifiManager wmanager;
+	private ActivityManager amanager;
+	private PackageManager pmanager;
 
 	private String last_connection = null;
 	private int signalstrength = -1;
@@ -71,8 +77,13 @@ public class NotificationService extends Service {
 	private long last_rx = TrafficStats.getTotalRxBytes();
 	private long last_tx = TrafficStats.getTotalTxBytes();
 
+	private HashMap<String, Long> hm_app_last_rx = new HashMap<String, Long>();
+	private HashMap<String, Long> hm_app_last_tx = new HashMap<String, Long>();
+
 	private boolean screenOff = false;
 
+	private int MAX_CHAR = 18;
+	
 	@Override
 	public IBinder onBind(Intent intent) {		
 		return null;
@@ -151,12 +162,13 @@ public class NotificationService extends Service {
 			boolean showwifilinkspeed = MainActivity.loadBooleanPref(context, MainActivity.SHOWWIFILINKSPEED, MainActivity.SHOWWIFILINKSPEED_DEFAULT);
 			boolean showsignalstrength = MainActivity.loadBooleanPref(context, MainActivity.SHOWSIGNALSTRENGTH, MainActivity.SHOWSIGNALSTRENGTH_DEFAULT);
 			boolean showonairplanemode = MainActivity.loadBooleanPref(context, MainActivity.SHOWONAIRPLANEMODE, MainActivity.SHOWONAIRPLANEMODE_DEFAULT);
+			boolean showappname = MainActivity.loadBooleanPref(context, MainActivity.SHOWAPPNAME, MainActivity.SHOWAPPNAME_DEFAULT);
 
 			int [] refresh_values = res.getIntArray(R.array.refresh_values);
 			long refresh = (long) refresh_values[MainActivity.loadIntPref(context, MainActivity.REFRESH, MainActivity.REFRESH_DEFAULT)];
 
 			int ontap = MainActivity.loadIntPref(context, MainActivity.ONTAP, MainActivity.ONTAP_DEFAULT);
-			
+
 			int [] threshold_values = res.getIntArray(R.array.threshold_values);
 			int threshold = MainActivity.loadIntPref(context, MainActivity.THRESHOLD, MainActivity.THRESHOLD_DEFAULT);
 
@@ -222,13 +234,8 @@ public class NotificationService extends Service {
 					WifiInfo winfo = wmanager.getConnectionInfo();
 
 					subtype = winfo.getSSID();
-
-					int density= getResources().getDisplayMetrics().densityDpi;
-					int orientation = getResources().getConfiguration().orientation;
-					if(orientation==Configuration.ORIENTATION_PORTRAIT&&density<=DisplayMetrics.DENSITY_MEDIUM&&subtype!=null&&subtype.length()>10) {
-						subtype = subtype.substring(0, 6) + "...";
-					}
-
+					if(subtype!=null&&subtype.length()>MAX_CHAR)subtype = subtype.substring(0,MAX_CHAR-1);
+					
 					if(showipaddress)ipaddress = getIPAddress();
 
 
@@ -298,10 +305,10 @@ public class NotificationService extends Service {
 
 							long rxBytes = mStartRX - last_rx;
 							last_rx = TrafficStats.getTotalRxBytes();
-							
+
 							long in = 0;
 							if(rxBytes<0)in = 0;					
-							
+
 							float divide = (float) refresh / 1000;
 							try {
 								in = (long) (rxBytes / divide);
@@ -309,7 +316,7 @@ public class NotificationService extends Service {
 								if(D)e.printStackTrace();
 							}
 							if(in<threshold_values[threshold])in = 0;
-							
+
 							String per = refresh + "ms";
 							if(divide % 1 == 0) {
 								per = (int) divide + "s";
@@ -342,6 +349,119 @@ public class NotificationService extends Service {
 							if(out==0&&in>0)drawable = R.drawable.ic_stat_in;
 							if(in>0&&out>0)drawable = R.drawable.ic_stat_inout;
 							if(in==0&&out==0)drawable = R.drawable.ic_stat_zero;
+
+							if(showappname&&in>threshold_values[threshold]||out>threshold_values[threshold]) {
+
+								if(amanager==null)amanager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+								if(pmanager==null)pmanager = getPackageManager();
+
+								List<RunningAppProcessInfo> runningProcesses = amanager.getRunningAppProcesses();								
+								if (runningProcesses != null) {
+
+									String appnames_string = "";
+
+									String name_in = "";
+									long in_last = 0;
+									int in_count = 0;
+
+									String name_out = "";
+									long out_last = 0;
+									int out_count = 0;
+
+									for (int j = 0; j < runningProcesses.size(); j++) {
+
+										RunningAppProcessInfo ra_pi = runningProcesses.get(j);
+										int uid = ra_pi.uid;
+										String processname = ra_pi.processName;
+										if(processname.equals(context.getPackageName()))continue;
+										
+										//
+
+										long app_in = TrafficStats.getUidRxBytes(uid);
+										long app_out = TrafficStats.getUidTxBytes(uid);
+
+										String name = "";
+										if(app_in>0||app_out>0) {										
+											try {
+												
+												String [] pn = processname.split("\\.");
+												name = pn[pn.length-1];
+												
+												PackageInfo pinfo = pmanager.getPackageInfo(processname, 0);
+												
+												ApplicationInfo ai=pmanager.getApplicationInfo(pinfo.packageName, 0);
+												if((ai.flags & ApplicationInfo.FLAG_SYSTEM)!=0)continue;
+												
+												name = String.valueOf(pmanager.getApplicationLabel(ai));
+												if(name.length()>MAX_CHAR)name = name.substring(0, MAX_CHAR - 1) + "[...]";
+
+											} catch (Exception e) {
+												//if(D)e.printStackTrace();
+											}
+										}
+										
+										if(app_in>0) {
+
+											long app_last_rx = app_in;
+											try {
+												app_last_rx = hm_app_last_rx.get(processname);
+											} catch (Exception e) {}
+
+											long app_rxBytes = app_in - app_last_rx;
+											if(app_rxBytes>threshold_values[threshold]) {
+												in_count++;
+												if(app_rxBytes>in_last) {
+													name_in = name;
+													if(D)Log.d(TAG, "in - " + name + " - " + humanReadableByteCount(app_rxBytes, showbitsorbytes));
+												}
+											}
+										}
+										hm_app_last_rx.put(processname, app_in);
+
+										//
+
+										if(app_out>0) {
+
+											long app_last_tx = app_out;
+											try {
+												app_last_tx = hm_app_last_tx.get(processname);
+											} catch (Exception e) {}
+
+											long app_txBytes = app_out - app_last_tx;
+											if(app_txBytes>threshold_values[threshold]) {
+												out_count++;
+												if(app_txBytes>out_last) {
+													name_out = name;
+													if(D)Log.d(TAG, "in - " + name + " - " + humanReadableByteCount(app_txBytes, showbitsorbytes));
+												}
+											}
+										}			
+										hm_app_last_tx.put(processname, app_out);
+																			
+									}
+									
+									if(name_in.length()>0&&name_out.length()>0&&name_in.equals(name_out)) {
+										appnames_string = "↕" + name_in;
+										int total_count = in_count + out_count;
+										if(total_count>2)appnames_string += " +" + (total_count-2);
+									}
+									else {
+										if(name_in.length()>0) {
+											appnames_string = "↓" + name_in;
+											if(in_count>1)appnames_string += " +" + (in_count-1);
+										}
+										if(name_out.length()>0) {
+											if(name_in.length()>0)appnames_string += " ";
+											appnames_string += "↑" + name_out;
+											if(out_count>1)appnames_string += " +" + (out_count-1);
+										}
+									}	
+									
+									String divider = " | ";
+									if(subtitle.length()==0||appnames_string.length()==0)divider = "";
+									subtitle = appnames_string + divider + subtitle;
+								}
+							}
 						}
 					}
 					else {
