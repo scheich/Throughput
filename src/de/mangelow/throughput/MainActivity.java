@@ -20,6 +20,8 @@ import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.ResultReceiver;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
@@ -35,6 +37,9 @@ public class MainActivity extends PreferenceActivity {
 
 	private Intent serviceIntent;
 
+	private mResultReceiver resultReceiver;
+	private Preference p_preview;
+	
 	public static final String PREF_FILE = "Prefs";
 
 	public static final String ENABLED = "enabled";
@@ -91,8 +96,11 @@ public class MainActivity extends PreferenceActivity {
 		context = getApplicationContext();
 		res = context.getResources();
 
-		serviceIntent = new Intent(context, NotificationService.class);
+		resultReceiver = new mResultReceiver(null);
 
+		serviceIntent = new Intent(context, NotificationService.class);
+		serviceIntent.putExtra("receiver", resultReceiver);
+		
 		setPreferenceScreen(createPreferences());
 
 		if(Build.VERSION.SDK_INT<Build.VERSION_CODES.HONEYCOMB)getWindow().setFeatureDrawableResource(Window.FEATURE_LEFT_ICON,R.drawable.ic_launcher);
@@ -133,6 +141,12 @@ public class MainActivity extends PreferenceActivity {
 		});
 		root.addPreference(cbp_enabled);
 
+		p_preview = new Preference(context);
+		p_preview.setEnabled(false);
+		p_preview.setTitle("");
+		p_preview.setSummary("");
+		root.addPreference(p_preview);
+		
 		//
 
 		boolean showticker = MainActivity.loadBooleanPref(context, MainActivity.SHOWTICKER, MainActivity.SHOWTICKER_DEFAULT);
@@ -351,6 +365,30 @@ public class MainActivity extends PreferenceActivity {
 		return root;
 	}
 
+	//
+	
+	private class mResultReceiver extends ResultReceiver {
+		public mResultReceiver(Handler handler) {
+			super(handler);
+		}
+
+		@Override
+		protected void onReceiveResult(int resultCode, Bundle resultData) {
+
+			int drawable = resultData.getInt("drawable");
+			String title = resultData.getString("title");
+			String subtitle = resultData.getString("subtitle");
+
+			if (Build.VERSION.SDK_INT>10)p_preview.setIcon(drawable);
+			
+			p_preview.setTitle(title);
+			p_preview.setSummary(subtitle);
+
+		}
+	}
+	
+	//
+	
 	public static void saveBooleanPref(Context context,String name, boolean value) {
 		SharedPreferences.Editor prefs = context.getSharedPreferences(PREF_FILE, 0).edit();
 		prefs.putBoolean(name, value);

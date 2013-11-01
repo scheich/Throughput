@@ -44,8 +44,10 @@ import android.net.TrafficStats;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.ResultReceiver;
 import android.provider.Settings;
 import android.telephony.NeighboringCellInfo;
 import android.telephony.PhoneStateListener;
@@ -84,6 +86,15 @@ public class NotificationService extends Service {
 
 	private int MAX_CHAR = 18;
 	
+	private ResultReceiver mResultReceiver;
+
+	@Override
+	public int onStartCommand(Intent intent, int flags, int startId) {
+
+		mResultReceiver = intent.getParcelableExtra("receiver");
+
+		return START_STICKY;
+	}
 	@Override
 	public IBinder onBind(Intent intent) {		
 		return null;
@@ -524,7 +535,7 @@ public class NotificationService extends Service {
 
 	@SuppressWarnings("deprecation")
 	private void modifyNotification(int drawable, String ticker, String title, String subtitle, Intent i) {
-
+		
 		boolean showticker = MainActivity.loadBooleanPref(context, MainActivity.SHOWTICKER, MainActivity.SHOWTICKER_DEFAULT);
 		if(!showticker)ticker = null;
 
@@ -559,12 +570,34 @@ public class NotificationService extends Service {
 		}		
 
 		nmanager.notify(NOTIFICATION_ID, n);
+		
+		//
+		
+		if(mResultReceiver!=null) {
+
+			Bundle bundle = new Bundle();
+			bundle.putInt("drawable", drawable);
+			bundle.putString("title", title);
+			bundle.putString("subtitle", subtitle);
+			mResultReceiver.send(0, bundle);
+
+		}
 
 	}	
 	private void removeNotification() {
 
 		NotificationManager nmanager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 		nmanager.cancel(NOTIFICATION_ID);
+		
+		if(mResultReceiver!=null) {
+
+			Bundle bundle = new Bundle();
+			bundle.putInt("drawable", R.drawable.ic_stat_zero);
+			bundle.putString("title", "");
+			bundle.putString("subtitle", "");
+			mResultReceiver.send(0, bundle);
+
+		}
 	}
 
 	//
