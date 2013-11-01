@@ -61,7 +61,7 @@ public class NotificationService extends Service {
 
 	private Builder nb;
 	public static int NOTIFICATION_ID = 347893278;
-	
+
 	private TelephonyManager tmanager;
 	private WifiManager wmanager;
 
@@ -99,8 +99,10 @@ public class NotificationService extends Service {
 
 		modifyNotification(R.drawable.ic_stat_zero, null, "", "", new Intent());
 
-		handler = new Handler();
-		handler.postDelayed(mRunnable, refresh);
+		if(handler==null) {
+			handler = new Handler();
+			handler.postDelayed(mRunnable, refresh);
+		}
 
 	}
 	@Override
@@ -188,11 +190,11 @@ public class NotificationService extends Service {
 						if(procent>-1) {
 							if(showcells)quality_string = res.getQuantityString(R.plurals.cells, ncells, ncells);
 							if(showsignalstrength) {
-								if(quality_string.length()>0)quality_string += "|";
+								if(quality_string.length()>0)quality_string += " | ";
 								quality_string += procent + "%";
 							}
 							if(showipaddress) {
-								if(quality_string.length()>0)quality_string += "|";
+								if(quality_string.length()>0)quality_string += " | ";
 								quality_string += ipaddress;
 							}
 						}
@@ -202,11 +204,11 @@ public class NotificationService extends Service {
 					if(last_connection==null||!last_connection.equals(subtype)) {
 						last_connection = subtype;	
 						if(showssidsubtype)ticker = subtype;
-						if(quality_string.length()>0)ticker += " " + quality_string;
+						if(quality_string.length()>0)ticker += " | " + quality_string;
 					}
 
 					if(showssidsubtype)subtitle = subtype;
-					if(quality_string.length()>0)subtitle += " " + quality_string;
+					if(quality_string.length()>0)subtitle += " | " + quality_string;
 
 				}
 				else if(getNetworkState(ConnectivityManager.TYPE_WIFI)) {
@@ -242,11 +244,11 @@ public class NotificationService extends Service {
 					if(procent>-1) {
 						if(showwifilinkspeed)quality_string = linkspeed + "Mbit";
 						if(showsignalstrength) {
-							if(quality_string.length()>0)quality_string += "|";
+							if(quality_string.length()>0)quality_string += " | ";
 							quality_string += procent + "%";
 						}
 						if(showipaddress) {
-							if(quality_string.length()>0)quality_string += "|";
+							if(quality_string.length()>0)quality_string += " | ";
 							quality_string += ipaddress;
 						}
 					}
@@ -256,11 +258,11 @@ public class NotificationService extends Service {
 					if(last_connection==null||!last_connection.equals(subtype)) {
 						last_connection = subtype;
 						if(showssidsubtype)ticker = subtype;
-						if(quality_string.length()>0)ticker += " " + quality_string;
+						if(quality_string.length()>0)ticker += " | " + quality_string;
 					}
 
 					if(showssidsubtype)subtitle = subtype;
-					if(quality_string.length()>0)subtitle += " " + quality_string;
+					if(quality_string.length()>0)subtitle += " | " + quality_string;
 
 				}
 				else if(showonairplanemode && isAirplaneModeOn(context)) {
@@ -293,7 +295,7 @@ public class NotificationService extends Service {
 
 							long rxBytes = mStartRX - last_rx;
 							last_rx = TrafficStats.getTotalRxBytes();
-
+							
 							long in = 0;
 							if(rxBytes<0)in = 0;					
 
@@ -397,40 +399,40 @@ public class NotificationService extends Service {
 
 	@SuppressWarnings("deprecation")
 	private void modifyNotification(int drawable, String ticker, String title, String subtitle, Intent i) {
-		
+
 		boolean showticker = MainActivity.loadBooleanPref(context, MainActivity.SHOWTICKER, MainActivity.SHOWTICKER_DEFAULT);
 		if(!showticker)ticker = null;
 
 		NotificationManager nmanager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 		PendingIntent pi = PendingIntent.getActivity(this, 0, i, NOTIFICATION_ID);
 		Notification n = null;
-		
+
 		if (Build.VERSION.SDK_INT < 11) {
-			
+
 			n = new Notification(drawable, ticker, System.currentTimeMillis());
 			n.flags |= Notification.FLAG_NO_CLEAR;	
 			n.setLatestEventInfo(this, title, subtitle, pi);
-			
+
 		}
 		else {
-			
+
 			if(nb==null) {
 				nb = new Notification.Builder(context);
-			    nb.setPriority(Notification.PRIORITY_LOW);
+				nb.setPriority(Notification.PRIORITY_LOW);
 				nb.setAutoCancel(true);
 			}
-			
+
 			nb.setSmallIcon(drawable);
 			if(ticker!=null)nb.setTicker(ticker);
 			nb.setContentTitle(title);
 			nb.setContentText(subtitle);
 			nb.setContentIntent(pi);
-			
+
 			n = nb.build();
 			n.flags = Notification.FLAG_NO_CLEAR;
-			
+
 		}		
-		
+
 		nmanager.notify(NOTIFICATION_ID, n);
 
 	}	
