@@ -58,7 +58,7 @@ import android.util.Log;
 public class NotificationService extends Service {
 
 	private final String TAG = "TP";
-	private final boolean D = true;
+	private final boolean D = false;
 
 	private Context context;
 	private Resources res;
@@ -228,13 +228,13 @@ public class NotificationService extends Service {
 					}
 
 					if(last_connection==null||!last_connection.equals(subtype)) {
-						last_connection = subtype;	
-						if(showssidsubtype)ticker = subtype;
-						if(quality_string.length()>0)ticker += " | " + quality_string;
+						last_connection = subtype;
+						if(showssidsubtype)ticker = subtype + " | ";
+						if(quality_string.length()>0)ticker += quality_string;
 					}
 
-					if(showssidsubtype)subtitle = subtype;
-					if(quality_string.length()>0)subtitle += " | " + quality_string;
+					if(showssidsubtype)subtitle = subtype + " | ";
+					if(quality_string.length()>0)subtitle += quality_string;
 
 				}
 				else if(getNetworkState(ConnectivityManager.TYPE_WIFI)) {
@@ -278,12 +278,12 @@ public class NotificationService extends Service {
 
 					if(last_connection==null||!last_connection.equals(subtype)) {
 						last_connection = subtype;
-						if(showssidsubtype)ticker = subtype;
-						if(quality_string.length()>0)ticker += " | " + quality_string;
+						if(showssidsubtype)ticker = subtype + " | ";
+						if(quality_string.length()>0)ticker += quality_string;
 					}
 
-					if(showssidsubtype)subtitle = subtype;
-					if(quality_string.length()>0)subtitle += " | " + quality_string;
+					if(showssidsubtype)subtitle = subtype + " | ";
+					if(quality_string.length()>0)subtitle += quality_string;
 
 				}
 				else if(showonairplanemode && isAirplaneModeOn(context)) {
@@ -384,8 +384,19 @@ public class NotificationService extends Service {
 										RunningAppProcessInfo ra_pi = runningProcesses.get(j);
 										int uid = ra_pi.uid;
 										String processname = ra_pi.processName;
+									
+										//
+										
 										if(processname.equals(context.getPackageName()))continue;
 										
+										if(processname.equals("android.process.acore"))continue;
+										if(processname.equals("com.android.phone"))continue;
+										if(processname.equals("system"))continue;
+										if(processname.equals("com.android.settings"))continue;
+										if(processname.equals("com.android.systemui"))continue;
+										if(processname.equals("com.cyanogenmod.cmparts"))continue;
+										if(processname.equals("com.google.android.gms"))continue;
+
 										//
 
 										long app_in = TrafficStats.getUidRxBytes(uid);
@@ -401,7 +412,7 @@ public class NotificationService extends Service {
 												PackageInfo pinfo = pmanager.getPackageInfo(processname, 0);
 												
 												ApplicationInfo ai=pmanager.getApplicationInfo(pinfo.packageName, 0);
-												if((ai.flags & ApplicationInfo.FLAG_SYSTEM)!=0)continue;
+												//if((ai.flags & ApplicationInfo.FLAG_SYSTEM)!=0)continue;
 												
 												name = String.valueOf(pmanager.getApplicationLabel(ai));
 												if(name.length()>MAX_CHAR)name = name.substring(0, MAX_CHAR - 1) + "[...]";
@@ -423,7 +434,7 @@ public class NotificationService extends Service {
 												in_count++;
 												if(app_rxBytes>in_last) {
 													name_in = name;
-													if(D)Log.d(TAG, "in - " + name + " - " + humanReadableByteCount(app_rxBytes, showbitsorbytes));
+													if(D)Log.d(TAG, "in - " + processname + " - " + humanReadableByteCount(app_rxBytes, showbitsorbytes));
 												}
 											}
 										}
@@ -443,7 +454,7 @@ public class NotificationService extends Service {
 												out_count++;
 												if(app_txBytes>out_last) {
 													name_out = name;
-													if(D)Log.d(TAG, "in - " + name + " - " + humanReadableByteCount(app_txBytes, showbitsorbytes));
+													if(D)Log.d(TAG, "out - " + processname + " - " + humanReadableByteCount(app_txBytes, showbitsorbytes));
 												}
 											}
 										}			
