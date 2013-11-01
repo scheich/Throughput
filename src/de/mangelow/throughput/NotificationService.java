@@ -91,7 +91,7 @@ public class NotificationService extends Service {
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 
-		mResultReceiver = intent.getParcelableExtra("receiver");
+		if(intent!=null)mResultReceiver = intent.getParcelableExtra("receiver");
 
 		return START_STICKY;
 	}
