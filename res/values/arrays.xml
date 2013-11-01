@@ -17,6 +17,24 @@
         <item>3000</item>
     </integer-array>
 
+    <string-array name="threshold">
+        <item>Zero (> 0 bytes)</item>
+        <item>More equal than 256 bytes</item>
+        <item>More equal than 512 bytes</item>
+        <item>More equal than 1024 bytes</item>
+        <item>More equal than 2048 bytes</item>
+        <item>More equal than 4096 bytes</item>
+    </string-array>
+
+    <integer-array name="threshold_values">
+        <item>0</item>
+        <item>256</item>
+        <item>512</item>
+        <item>1024</item>
+        <item>2048</item>
+        <item>4096</item>
+    </integer-array>
+
     <string-array name="ontap">
         <item>Open the corresponding system setting</item>
         <item>Open this app</item>

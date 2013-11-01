@@ -69,6 +69,9 @@ public class MainActivity extends PreferenceActivity {
 
 	public static final String ONTAP = "ontap";
 	public static final int ONTAP_DEFAULT = 0;
+	
+	public static final String THRESHOLD = "threshold";
+	public static final int THRESHOLD_DEFAULT = 3;
 		
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -299,6 +302,33 @@ public class MainActivity extends PreferenceActivity {
 		}); 
 		pc_settings.addPreference(lp_ontap);
 
+		int threshold = loadIntPref(context, THRESHOLD, THRESHOLD_DEFAULT);
+
+		final String [] threshold_entries = res.getStringArray(R.array.threshold);
+		int length_threshold_entries = threshold_entries.length;
+		
+		String [] threshold_values = new String[length_threshold_entries];
+		for (int i = 0; i < length_threshold_entries; i++)threshold_values[i] = String.valueOf(i);
+
+		ListPreference lp_threshold = new ListPreference(this);
+		lp_threshold.setTitle(res.getString(R.string.threshold));
+		lp_threshold.setEntries(threshold_entries);
+		lp_threshold.setEntryValues(threshold_values);
+		lp_threshold.setSummary(threshold_entries[threshold]);
+		lp_threshold.setValue(String.valueOf(threshold));
+		lp_threshold.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+			public boolean onPreferenceChange(Preference preference, Object newValue) {
+				final String summary = newValue.toString();
+				ListPreference lp = (ListPreference) preference;	
+				int newvalue = lp.findIndexOfValue(summary);
+				lp.setSummary(threshold_entries[newvalue]);
+				saveIntPref(context, THRESHOLD, newvalue);
+
+				return true;
+			}
+		}); 
+		pc_settings.addPreference(lp_threshold);
+		
 		//
 
 		return root;

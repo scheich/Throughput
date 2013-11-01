@@ -156,6 +156,9 @@ public class NotificationService extends Service {
 			long refresh = (long) refresh_values[MainActivity.loadIntPref(context, MainActivity.REFRESH, MainActivity.REFRESH_DEFAULT)];
 
 			int ontap = MainActivity.loadIntPref(context, MainActivity.ONTAP, MainActivity.ONTAP_DEFAULT);
+			
+			int [] threshold_values = res.getIntArray(R.array.threshold_values);
+			int threshold = MainActivity.loadIntPref(context, MainActivity.THRESHOLD, MainActivity.THRESHOLD_DEFAULT);
 
 			if(ontap==1)i = new Intent(context, MainActivity.class);
 
@@ -298,14 +301,15 @@ public class NotificationService extends Service {
 							
 							long in = 0;
 							if(rxBytes<0)in = 0;					
-
+							
 							float divide = (float) refresh / 1000;
 							try {
 								in = (long) (rxBytes / divide);
 							} catch (Exception e) {
 								if(D)e.printStackTrace();
 							}
-
+							if(in<threshold_values[threshold])in = 0;
+							
 							String per = refresh + "ms";
 							if(divide % 1 == 0) {
 								per = (int) divide + "s";
@@ -328,6 +332,7 @@ public class NotificationService extends Service {
 							} catch (Exception e) {
 								if(D)e.printStackTrace();
 							}
+							if(out<threshold_values[threshold])out = 0;
 
 							humanreadable = humanReadableByteCount(out, showbitsorbytes);
 							if(humanreadable.contains("-"))humanreadable="0.0";
