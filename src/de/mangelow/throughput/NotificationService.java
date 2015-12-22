@@ -33,6 +33,7 @@ import android.content.IntentFilter;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.TrafficStats;
@@ -532,6 +533,7 @@ public class NotificationService extends Service {
 				nb.setAutoCancel(true);
 			}
 
+			nb.setColor(Color.BLACK);
 			nb.setSmallIcon(drawable);
 			if(ticker!=null)nb.setTicker(ticker);
 			nb.setContentTitle(title);
