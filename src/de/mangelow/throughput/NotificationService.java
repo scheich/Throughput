@@ -12,30 +12,25 @@ package de.mangelow.throughput;
  * limitations under the License.
  *
  */
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
-import org.apache.http.conn.util.InetAddressUtils;
-
 import android.app.Notification;
-import android.app.ActivityManager.RunningAppProcessInfo;
 import android.app.Notification.Builder;
-import android.app.ActivityManager;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.net.ConnectivityManager;
@@ -70,8 +65,6 @@ public class NotificationService extends Service {
 
 	private TelephonyManager tmanager;
 	private WifiManager wmanager;
-	private ActivityManager amanager;
-	private PackageManager pmanager;
 
 	private String last_connection = null;
 	private int signalstrength = -1;
@@ -79,8 +72,7 @@ public class NotificationService extends Service {
 	private long last_rx = TrafficStats.getTotalRxBytes();
 	private long last_tx = TrafficStats.getTotalTxBytes();
 
-	private HashMap<String, Long> hm_app_last_rx = new HashMap<String, Long>();
-	private HashMap<String, Long> hm_app_last_tx = new HashMap<String, Long>();
+	private ArrayList<App> apps;
 
 	private boolean screenOff = false;
 
@@ -191,8 +183,8 @@ public class NotificationService extends Service {
 
 					if(ontap==0) {
 						i = new Intent(Settings.ACTION_DATA_ROAMING_SETTINGS);
-						ComponentName cName = new ComponentName("com.android.phone","com.android.phone.Settings");
-						i.setComponent(cName); 
+						i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+						i.setAction(android.provider.Settings.ACTION_DATA_ROAMING_SETTINGS); 
 					}
 
 					List<NeighboringCellInfo> l_ncells = tmanager.getNeighboringCellInfo();
@@ -282,8 +274,11 @@ public class NotificationService extends Service {
 						if(quality_string.length()>0)ticker += quality_string;
 					}
 
-					if(showssidsubtype)subtitle = subtype + " | ";
-					if(quality_string.length()>0)subtitle += quality_string;
+					if(showssidsubtype)subtitle = subtype;
+					if(quality_string.length()>0) {
+						if(subtitle.length()>0)subtitle += " | ";
+						subtitle += quality_string;
+					}
 
 				}
 				else if(showonairplanemode && isAirplaneModeOn(context)) {
@@ -363,12 +358,9 @@ public class NotificationService extends Service {
 
 							if(showappname&&in>threshold_values[threshold]||out>threshold_values[threshold]) {
 
-								if(amanager==null)amanager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-								if(pmanager==null)pmanager = getPackageManager();
-
-								List<RunningAppProcessInfo> runningProcesses = amanager.getRunningAppProcesses();								
-								if (runningProcesses != null) {
-
+								if(apps==null)apps = getApplications(context);
+								
+								if (apps != null) {
 									String appnames_string = "";
 
 									String name_in = "";
@@ -379,23 +371,11 @@ public class NotificationService extends Service {
 									long out_last = 0;
 									int out_count = 0;
 
-									for (int j = 0; j < runningProcesses.size(); j++) {
+									for (int j = 0; j < apps.size(); j++) {
 
-										RunningAppProcessInfo ra_pi = runningProcesses.get(j);
-										int uid = ra_pi.uid;
-										String processname = ra_pi.processName;
-									
-										//
-										
-										if(processname.equals(context.getPackageName()))continue;
-										
-										if(processname.equals("android.process.acore"))continue;
-										if(processname.equals("com.android.phone"))continue;
-										if(processname.equals("system"))continue;
-										if(processname.equals("com.android.settings"))continue;
-										if(processname.equals("com.android.systemui"))continue;
-										if(processname.equals("com.cyanogenmod.cmparts"))continue;
-										if(processname.equals("com.google.android.gms"))continue;
+										App app = apps.get(j);
+										int uid = app.getUID();
+										String packagename = app.getPackagename();
 
 										//
 
@@ -403,30 +383,13 @@ public class NotificationService extends Service {
 										long app_out = TrafficStats.getUidTxBytes(uid);
 
 										String name = "";
-										if(app_in>0||app_out>0) {										
-											try {
-												
-												String [] pn = processname.split("\\.");
-												name = pn[pn.length-1];
-												
-												PackageInfo pinfo = pmanager.getPackageInfo(processname, 0);
-												
-												ApplicationInfo ai=pmanager.getApplicationInfo(pinfo.packageName, 0);
-												//if((ai.flags & ApplicationInfo.FLAG_SYSTEM)!=0)continue;
-												
-												name = String.valueOf(pmanager.getApplicationLabel(ai));
-												if(name.length()>MAX_CHAR)name = name.substring(0, MAX_CHAR - 1) + "[...]";
-
-											} catch (Exception e) {
-												//if(D)e.printStackTrace();
-											}
-										}
+										if(app_in>0||app_out>0) name = packagename;
 										
 										if(app_in>0) {
 
 											long app_last_rx = app_in;
 											try {
-												app_last_rx = hm_app_last_rx.get(processname);
+												app_last_rx = app.getLastRx();
 											} catch (Exception e) {}
 
 											long app_rxBytes = app_in - app_last_rx;
@@ -434,11 +397,11 @@ public class NotificationService extends Service {
 												in_count++;
 												if(app_rxBytes>in_last) {
 													name_in = name;
-													if(D)Log.d(TAG, "in - " + processname + " - " + humanReadableByteCount(app_rxBytes, showbitsorbytes));
+													if(D)Log.d(TAG, "in - " + packagename + " - " + humanReadableByteCount(app_rxBytes, showbitsorbytes));
 												}
 											}
 										}
-										hm_app_last_rx.put(processname, app_in);
+										app.setLastRx(app_in);
 
 										//
 
@@ -446,7 +409,7 @@ public class NotificationService extends Service {
 
 											long app_last_tx = app_out;
 											try {
-												app_last_tx = hm_app_last_tx.get(processname);
+												app_last_tx = app.getLastTx();
 											} catch (Exception e) {}
 
 											long app_txBytes = app_out - app_last_tx;
@@ -454,11 +417,11 @@ public class NotificationService extends Service {
 												out_count++;
 												if(app_txBytes>out_last) {
 													name_out = name;
-													if(D)Log.d(TAG, "out - " + processname + " - " + humanReadableByteCount(app_txBytes, showbitsorbytes));
+													if(D)Log.d(TAG, "out - " + packagename + " - " + humanReadableByteCount(app_txBytes, showbitsorbytes));
 												}
 											}
 										}			
-										hm_app_last_tx.put(processname, app_out);
+										app.setLastTx(app_out);
 																			
 									}
 									
@@ -646,16 +609,13 @@ public class NotificationService extends Service {
 	private String getIPAddress() {
 
 		try {
-			String ipv4;
 			List<NetworkInterface>  nilist = Collections.list(NetworkInterface.getNetworkInterfaces());
 			if(nilist.size() > 0){
 				for (NetworkInterface ni: nilist){
 					List<InetAddress>  ialist = Collections.list(ni.getInetAddresses());
 					if(ialist.size()>0){
 						for (InetAddress address: ialist){
-							if (!address.isLoopbackAddress() && InetAddressUtils.isIPv4Address(ipv4=address.getHostAddress())){ 
-								return ipv4;
-							}
+							if(!address.isLoopbackAddress() && address instanceof Inet4Address)return address.getHostAddress();
 						}
 					}
 
@@ -735,5 +695,35 @@ public class NotificationService extends Service {
 		int exp = (int) (Math.log(bytes) / Math.log(unit));
 		String pre = (si ? "kMGTPE" : "KMGTPE").charAt(exp-1) + (si ? "" : "i");
 		return String.format(Locale.US, "%.1f %sB", bytes / Math.pow(unit, exp), pre);
+	}
+	private ArrayList<App> getApplications(Context context) {
+
+		ArrayList<App> apps = new ArrayList<App>();
+
+		PackageManager pmanager = context.getPackageManager();
+		List<ApplicationInfo> current_apps = pmanager.getInstalledApplications(0);
+		if(D)Log.d(TAG, "total apps - " + current_apps.size());
+
+		for (ApplicationInfo appInfo : current_apps) {
+
+			int uid = appInfo.uid;
+			String processname = appInfo.processName;
+			String packagename = (String) pmanager.getApplicationLabel(appInfo);
+
+			long last_rx = TrafficStats.getUidRxBytes(uid);
+			long last_tx = TrafficStats.getUidTxBytes(uid);
+
+			if(last_rx>0||last_tx>0) {
+				App app = new App();
+				app.setUID(uid);
+				app.setProcessname(processname);
+				app.setPackagename(packagename);
+				app.setLastRx(last_rx);
+				app.setLastTx(last_tx);
+				apps.add(app);
+			}
+		}
+
+		return apps;
 	}
 }

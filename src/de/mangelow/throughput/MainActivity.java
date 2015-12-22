@@ -1,17 +1,17 @@
 package de.mangelow.throughput;
 /***
-*
-* Licensed under the Apache License, Version 2.0 (the "License"); you may
-* not use this file except in compliance with the License. You may obtain
-* a copy of the License at
-* http://www.apache.org/licenses/LICENSE-2.0
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*
-*/
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License. You may obtain
+ * a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.content.Context;
@@ -39,7 +39,7 @@ public class MainActivity extends PreferenceActivity {
 
 	private mResultReceiver resultReceiver;
 	private Preference p_preview;
-	
+
 	public static final String PREF_FILE = "Prefs";
 
 	public static final String ENABLED = "enabled";
@@ -71,16 +71,16 @@ public class MainActivity extends PreferenceActivity {
 
 	public static final String SHOWAPPNAME = "showappname";
 	public static final boolean SHOWAPPNAME_DEFAULT = false;
-	
+
 	public static final String REFRESH = "refresh";
 	public static final int REFRESH_DEFAULT = 2;
 
 	public static final String ONTAP = "ontap";
 	public static final int ONTAP_DEFAULT = 0;
-	
+
 	public static final String THRESHOLD = "threshold";
 	public static final int THRESHOLD_DEFAULT = 3;
-		
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 
@@ -100,10 +100,10 @@ public class MainActivity extends PreferenceActivity {
 
 		serviceIntent = new Intent(context, NotificationService.class);
 		serviceIntent.putExtra("receiver", resultReceiver);
-		
+
 		setPreferenceScreen(createPreferences());
 
-		if(Build.VERSION.SDK_INT<Build.VERSION_CODES.HONEYCOMB)getWindow().setFeatureDrawableResource(Window.FEATURE_LEFT_ICON,R.drawable.ic_launcher);
+		if(Build.VERSION.SDK_INT<11)getWindow().setFeatureDrawableResource(Window.FEATURE_LEFT_ICON,R.drawable.ic_launcher);
 	}
 	@SuppressWarnings("deprecation")
 	private PreferenceScreen createPreferences() {
@@ -146,7 +146,7 @@ public class MainActivity extends PreferenceActivity {
 		p_preview.setTitle("");
 		p_preview.setSummary("");
 		root.addPreference(p_preview);
-		
+
 		//
 
 		boolean showticker = MainActivity.loadBooleanPref(context, MainActivity.SHOWTICKER, MainActivity.SHOWTICKER_DEFAULT);
@@ -162,19 +162,21 @@ public class MainActivity extends PreferenceActivity {
 		pc_settings.setEnabled(enabled);
 		root.addPreference(pc_settings);
 
-		final CheckBoxPreference cbp_showticker = new CheckBoxPreference(context);
-		cbp_showticker.setTitle(res.getString(R.string.showticker));
-		cbp_showticker.setSummary(res.getString(R.string.showticker_text));
-		cbp_showticker.setChecked(showticker);
-		cbp_showticker.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-			public boolean onPreferenceChange(Preference p, Object o) {
-				boolean newvalue = Boolean.parseBoolean(o.toString());
-				saveBooleanPref(context, SHOWTICKER, newvalue);				
-				return true;
-			}
-		});
-		pc_settings.addPreference(cbp_showticker);
-
+		if(Build.VERSION.SDK_INT<21) {
+			final CheckBoxPreference cbp_showticker = new CheckBoxPreference(context);
+			cbp_showticker.setTitle(res.getString(R.string.showticker));
+			cbp_showticker.setSummary(res.getString(R.string.showticker_text));
+			cbp_showticker.setChecked(showticker);
+			cbp_showticker.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+				public boolean onPreferenceChange(Preference p, Object o) {
+					boolean newvalue = Boolean.parseBoolean(o.toString());
+					saveBooleanPref(context, SHOWTICKER, newvalue);				
+					return true;
+				}
+			});
+			pc_settings.addPreference(cbp_showticker);
+		}
+		
 		final CheckBoxPreference cbp_showssidsubtype = new CheckBoxPreference(context);
 		cbp_showssidsubtype.setTitle(res.getString(R.string.showssidsubtype));
 		cbp_showssidsubtype.setSummary(res.getString(R.string.showssidsubtype_text));
@@ -278,12 +280,12 @@ public class MainActivity extends PreferenceActivity {
 			}
 		});
 		pc_settings.addPreference(cbp_showappname);
-		
+
 		int refresh = loadIntPref(context, REFRESH, REFRESH_DEFAULT);
 
 		final String [] refresh_entries = res.getStringArray(R.array.refresh);
 		int length_refresh_entries = refresh_entries.length;
-		
+
 		String [] refresh_values = new String[length_refresh_entries];
 		for (int i = 0; i < length_refresh_entries; i++)refresh_values[i] = String.valueOf(i);
 
@@ -305,12 +307,12 @@ public class MainActivity extends PreferenceActivity {
 			}
 		}); 
 		pc_settings.addPreference(lp_refresh);
-		
+
 		int ontap = loadIntPref(context, ONTAP, ONTAP_DEFAULT);
 
 		final String [] ontap_entries = res.getStringArray(R.array.ontap);
 		int length_ontap_entries = ontap_entries.length;
-		
+
 		String [] ontap_values = new String[length_ontap_entries];
 		for (int i = 0; i < length_ontap_entries; i++)ontap_values[i] = String.valueOf(i);
 
@@ -337,7 +339,7 @@ public class MainActivity extends PreferenceActivity {
 
 		final String [] threshold_entries = res.getStringArray(R.array.threshold);
 		int length_threshold_entries = threshold_entries.length;
-		
+
 		String [] threshold_values = new String[length_threshold_entries];
 		for (int i = 0; i < length_threshold_entries; i++)threshold_values[i] = String.valueOf(i);
 
@@ -359,14 +361,14 @@ public class MainActivity extends PreferenceActivity {
 			}
 		}); 
 		pc_settings.addPreference(lp_threshold);
-		
+
 		//
 
 		return root;
 	}
 
 	//
-	
+
 	private class mResultReceiver extends ResultReceiver {
 		public mResultReceiver(Handler handler) {
 			super(handler);
@@ -380,15 +382,15 @@ public class MainActivity extends PreferenceActivity {
 			String subtitle = resultData.getString("subtitle");
 
 			if (Build.VERSION.SDK_INT>10)p_preview.setIcon(drawable);
-			
+
 			p_preview.setTitle(title);
 			p_preview.setSummary(subtitle);
 
 		}
 	}
-	
+
 	//
-	
+
 	public static void saveBooleanPref(Context context,String name, boolean value) {
 		SharedPreferences.Editor prefs = context.getSharedPreferences(PREF_FILE, 0).edit();
 		prefs.putBoolean(name, value);
