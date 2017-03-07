@@ -1,7 +1,4 @@
 package de.mangelow.throughput;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 /***
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -15,6 +12,9 @@ import java.io.FileReader;
  * limitations under the License.
  *
  */
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -45,6 +45,7 @@ import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.TrafficStats;
+import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
@@ -381,6 +382,7 @@ public class NotificationService extends Service {
 									String appnames_string = "";
 
 									String name_in = "";
+									String packagename_in = "";
 									long in_last = 0;
 									int in_count = 0;
 
@@ -392,6 +394,7 @@ public class NotificationService extends Service {
 
 										App app = apps.get(j);
 										int uid = app.getUID();
+										String label = app.getLabel();
 										String packagename = app.getPackagename();
 
 										//
@@ -400,9 +403,9 @@ public class NotificationService extends Service {
 										if (app_in==0) app_in = getStat(uid, "tcp_rcv");
 										long app_out = TrafficStats.getUidTxBytes(uid);
 										if (app_out==0) app_out = getStat(uid, "tcp_snd");
-										
+
 										String name = "";
-										if(app_in>0||app_out>0) name = packagename;
+										if(app_in>0||app_out>0) name = label;
 
 										if(app_in>0) {
 
@@ -416,7 +419,9 @@ public class NotificationService extends Service {
 												in_count++;
 												if(app_rxBytes>in_last) {
 													name_in = name;
+													packagename_in = packagename;
 													if(D)Log.d(TAG, "in - " + packagename + " - " + humanReadableByteCount(app_rxBytes, showbitsorbytes));
+
 												}
 											}
 										}
@@ -442,6 +447,19 @@ public class NotificationService extends Service {
 										}			
 										app.setLastTx(app_out);
 
+									}
+
+									if(ontap==3 && packagename_in.length()>0) {
+										if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD) {
+											i = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+											i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+											i.setData(Uri.parse("package:" + packagename_in));
+										} else if (Build.VERSION.SDK_INT == Build.VERSION_CODES.FROYO) {
+											i = new Intent(Intent.ACTION_VIEW);
+											i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+											i.setClassName("com.android.settings", "com.android.settings.InstalledAppDetails");
+											i.putExtra("pkg", packagename_in);
+										}
 									}
 
 									if(name_in.length()>0&&name_out.length()>0&&name_in.equals(name_out)) {
@@ -798,7 +816,8 @@ public class NotificationService extends Service {
 
 			int uid = appInfo.uid;
 			String processname = appInfo.processName;
-			String packagename = (String) pmanager.getApplicationLabel(appInfo);
+			String packagename = appInfo.packageName;
+			String label = (String) pmanager.getApplicationLabel(appInfo);
 
 			long last_rx = TrafficStats.getUidRxBytes(uid);
 			if (last_rx==0) last_rx = getStat(uid, "tcp_rcv");
@@ -809,6 +828,7 @@ public class NotificationService extends Service {
 				App app = new App();
 				app.setUID(uid);
 				app.setProcessname(processname);
+				app.setLabel(label);
 				app.setPackagename(packagename);
 				app.setLastRx(last_rx);
 				app.setLastTx(last_tx);

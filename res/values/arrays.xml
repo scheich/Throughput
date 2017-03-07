@@ -39,6 +39,7 @@
         <item>Open the corresponding system setting</item>
         <item>Open this app</item>
         <item>Share network status of current location</item>
+        <item>Open app info of most active app (if any)</item>
         <item>Do nothing</item>
     </string-array>
 

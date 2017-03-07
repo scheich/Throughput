@@ -41,4 +41,13 @@ public class App {
 	public void setLastTx(long last_tx) {
 		this.last_tx = last_tx;
 	}
+	
+	String label = "";
+	public String getLabel() {
+		return label;
+	}
+	public void setLabel(String label) {
+		this.label = label;
+	}
+	
 }
