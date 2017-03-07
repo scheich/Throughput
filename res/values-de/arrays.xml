@@ -11,6 +11,7 @@
     <string-array name="ontap">
         <item>Die entsprechende Systemeinstellung öffnen</item>
         <item>Diese App öffnen</item>
+        <item>Netzwerk-Status vom aktuellen Ort teilen</item>
         <item>Nichts unternehmen</item>
     </string-array>
 

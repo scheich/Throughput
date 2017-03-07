@@ -29,6 +29,9 @@
     <string name="threshold">Threshold</string>
     <string name="showappname">Most Active App</string>
     <string name="showappname_text">Show the name of the app that is most active (+x others)</string>
+    <string name="sharenetworkstatus">Share network status</string>
+    <string name="nocurrentlocation">Could not get current location</string>
+    <string name="accuracyof">accuracy of %sm</string>
 
     <plurals name="cells">
         <item quantity="zero">0 cells</item>

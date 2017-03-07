@@ -28,6 +28,9 @@
     <string name="threshold">Schwellenwert</string>
     <string name="showappname">Aktivste App</string>
     <string name="showappname_text">Zeige den Namen der aktivsten App (+x weitere)</string>
+    <string name="sharenetworkstatus">Netzwerk-Status teilen</string>
+    <string name="nocurrentlocation">Derzeitiger Standort konnte nicht gefunden werden</string>
+    <string name="accuracyof">auf %sm genau</string>
 
     <plurals name="cells">
         <item quantity="one">1 Zelle</item>

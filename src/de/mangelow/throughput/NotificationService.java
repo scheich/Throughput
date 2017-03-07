@@ -34,6 +34,10 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Color;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.TrafficStats;
@@ -50,6 +54,7 @@ import android.telephony.PhoneStateListener;
 import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.widget.Toast;
 
 public class NotificationService extends Service {
 
@@ -78,7 +83,7 @@ public class NotificationService extends Service {
 	private boolean screenOff = false;
 
 	private int MAX_CHAR = 18;
-	
+
 	private ResultReceiver mResultReceiver;
 
 	@Override
@@ -239,7 +244,7 @@ public class NotificationService extends Service {
 
 					subtype = winfo.getSSID();
 					if(subtype!=null&&subtype.length()>MAX_CHAR)subtype = subtype.substring(0,MAX_CHAR-1);
-					
+
 					if(showipaddress)ipaddress = getIPAddress();
 
 
@@ -360,7 +365,7 @@ public class NotificationService extends Service {
 							if(showappname&&in>threshold_values[threshold]||out>threshold_values[threshold]) {
 
 								if(apps==null)apps = getApplications(context);
-								
+
 								if (apps != null) {
 									String appnames_string = "";
 
@@ -385,7 +390,7 @@ public class NotificationService extends Service {
 
 										String name = "";
 										if(app_in>0||app_out>0) name = packagename;
-										
+
 										if(app_in>0) {
 
 											long app_last_rx = app_in;
@@ -423,9 +428,9 @@ public class NotificationService extends Service {
 											}
 										}			
 										app.setLastTx(app_out);
-																			
+
 									}
-									
+
 									if(name_in.length()>0&&name_out.length()>0&&name_in.equals(name_out)) {
 										appnames_string = "↕" + name_in;
 										int total_count = in_count + out_count;
@@ -442,12 +447,37 @@ public class NotificationService extends Service {
 											if(out_count>1)appnames_string += " +" + (out_count-1);
 										}
 									}	
-									
+
 									String divider = " | ";
 									if(subtitle.length()==0||appnames_string.length()==0)divider = "";
 									subtitle = appnames_string + divider + subtitle;
 								}
 							}
+						}
+
+						if(ontap==2) {
+
+							i = new Intent(android.content.Intent.ACTION_SEND);
+							i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+							i.setType("text/plain");
+							i.putExtra(android.content.Intent.EXTRA_SUBJECT, res.getString(R.string.sharenetworkstatus));
+							
+							String share_body = res.getString(R.string.nocurrentlocation);
+							
+							Location l = getLastBestLocation();
+							String current_address = getAddressfromLocation(l);
+							if ( current_address.length()>0 ) {
+								
+								share_body = subtitle + " - ";
+								
+								int accuracy_inmeters = (int)l.getAccuracy();
+								if (accuracy_inmeters>0) { current_address += " (" + res.getString(R.string.accuracyof, String.valueOf(accuracy_inmeters)) + ")"; }								
+								share_body += current_address;
+								
+							}
+							
+							i.putExtra(android.content.Intent.EXTRA_TEXT, share_body);
+
 						}
 					}
 					else {
@@ -475,7 +505,56 @@ public class NotificationService extends Service {
 		}
 
 	};
+	private Location getLastBestLocation() {
 
+		LocationManager mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+
+		Location locationGPS = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+		Location locationNet = mLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+
+		long GPSLocationTime = 0;
+		if (null != locationGPS) { GPSLocationTime = locationGPS.getTime(); }
+
+		long NetLocationTime = 0;
+
+		if (null != locationNet) {
+			NetLocationTime = locationNet.getTime();
+		}
+
+		if ( 0 < GPSLocationTime - NetLocationTime ) {
+			return locationGPS;
+		}
+		else {
+			return locationNet;
+		}
+	}
+	private String getAddressfromLocation(Location location) {
+
+		String address_string = "";
+
+		try {
+						 
+			Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+			List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+
+			String country = addresses.get(0).getCountryName();
+			if (country!=null) { address_string += country; }
+			
+			String city = addresses.get(0).getLocality();
+			if (city!=null) { address_string += " " + city; }
+			
+			String state = addresses.get(0).getAdminArea();
+			if (state!=null) { address_string += " " + state; }
+			
+			String addressline = addresses.get(0).getAddressLine(0);
+			if (addressline!=null) { address_string += " " + addressline; }
+			
+
+		} catch (Exception e){}
+
+		return address_string;
+
+	}
 	private class MyPhoneStateListener extends PhoneStateListener {
 		@Override
 		public void onSignalStrengthsChanged(SignalStrength signalStrength) {
@@ -510,7 +589,7 @@ public class NotificationService extends Service {
 
 	@SuppressWarnings("deprecation")
 	private void modifyNotification(int drawable, String ticker, String title, String subtitle, Intent i) {
-		
+
 		boolean showticker = MainActivity.loadBooleanPref(context, MainActivity.SHOWTICKER, MainActivity.SHOWTICKER_DEFAULT);
 		if(!showticker)ticker = null;
 
@@ -546,9 +625,9 @@ public class NotificationService extends Service {
 		}		
 
 		nmanager.notify(NOTIFICATION_ID, n);
-		
+
 		//
-		
+
 		if(mResultReceiver!=null) {
 
 			Bundle bundle = new Bundle();
@@ -564,7 +643,7 @@ public class NotificationService extends Service {
 
 		NotificationManager nmanager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 		nmanager.cancel(NOTIFICATION_ID);
-		
+
 		if(mResultReceiver!=null) {
 
 			Bundle bundle = new Bundle();
