@@ -1,4 +1,7 @@
 package de.mangelow.throughput;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 /***
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -293,9 +296,9 @@ public class NotificationService extends Service {
 
 				}
 				else if(showonairplanemode && isAirplaneModeOn(context)) {
-					
+
 					mLocationManager = null;
-					
+
 					drawable = R.drawable.ic_stat_apmode;
 					title = res.getString(R.string.airplane_mode);
 
@@ -394,8 +397,10 @@ public class NotificationService extends Service {
 										//
 
 										long app_in = TrafficStats.getUidRxBytes(uid);
+										if (app_in==0) app_in = getStat(uid, "tcp_rcv");
 										long app_out = TrafficStats.getUidTxBytes(uid);
-
+										if (app_out==0) app_out = getStat(uid, "tcp_snd");
+										
 										String name = "";
 										if(app_in>0||app_out>0) name = packagename;
 
@@ -487,7 +492,7 @@ public class NotificationService extends Service {
 
 								});
 							}
-							
+
 							Location current_l = getLastBestLocation(mLocationManager);
 							if (last_location==null)last_location = current_l;
 
@@ -506,7 +511,7 @@ public class NotificationService extends Service {
 								if (accuracy_inmeters>0) { share_body += " (" + res.getString(R.string.accuracyof, String.valueOf(accuracy_inmeters)) + ")"; }								
 
 							}
-							
+
 							i.putExtra(android.content.Intent.EXTRA_TEXT, share_body);
 
 						}
@@ -742,62 +747,36 @@ public class NotificationService extends Service {
 	}
 	private String getNetworkSubType() {
 
-		String subtype = null;
+		String type = null;
 
 		int networkType = tmanager.getNetworkType();
 
 		switch (networkType) {
-		case 7:
-			subtype = "1xRTT";
-			break;      
-		case 4:
-			subtype = "CDMA";
-			break;      
-		case 2:
-			subtype = "EDGE";
-			break;  
-		case 14:
-			subtype = "eHRPD";
-			break;      
-		case 5:
-			subtype = "EVDO rev. 0";
-			break;  
-		case 6:
-			subtype = "EVDO rev. A";
-			break;  
-		case 12:
-			subtype = "EVDO rev. B";
-			break;  
-		case 1:
-			subtype = "GPRS";
-			break;      
-		case 8:
-			subtype = "HSDPA";
-			break;      
-		case 10:
-			subtype = "HSPA";
-			break;          
-		case 15:
-			subtype = "HSPA+";
-			break;          
-		case 9:
-			subtype = "HSUPA";
-			break;          
-		case 11:
-			subtype = "iDen";
-			break;
-		case 13:
-			subtype = "LTE";
-			break;
-		case 3:
-			subtype = "UMTS";
-			break;          
-		case 0:
-			subtype = "Unknown";
-			break;
+		case TelephonyManager.NETWORK_TYPE_GPRS: type = "GPRS"; break;
+		case TelephonyManager.NETWORK_TYPE_EDGE: type = "EDGE"; break;
+		case TelephonyManager.NETWORK_TYPE_UMTS: type = "UMTS"; break;
+		case TelephonyManager.NETWORK_TYPE_HSDPA: type = "HSDPA"; break;
+		case TelephonyManager.NETWORK_TYPE_HSUPA: type = "HSUPA"; break;
+		case TelephonyManager.NETWORK_TYPE_HSPA: type = "HSPA"; break;
+		case TelephonyManager.NETWORK_TYPE_HSPAP: type = "HSPA+"; break;
+		case TelephonyManager.NETWORK_TYPE_LTE: type = "LTE"; break;
+		case TelephonyManager.NETWORK_TYPE_IDEN: type = "iDEN"; break;
+		case TelephonyManager.NETWORK_TYPE_CDMA: type = "cmdaOne"; break;
+		case TelephonyManager.NETWORK_TYPE_1xRTT: type = "CDMA2000 1xRTT"; break;
+		case TelephonyManager.NETWORK_TYPE_EVDO_0: type = "CDMA2000 1xEV-DO Rev. 0"; break;
+		case TelephonyManager.NETWORK_TYPE_EVDO_A: type = "CDMA2000 1xEV-DO Rev. A"; break;
+		case TelephonyManager.NETWORK_TYPE_EVDO_B: type = "CDMA2000 1xEV-DO Rev. B"; break;
+		case TelephonyManager.NETWORK_TYPE_EHRPD: type = "CDMA2000 eHRPD"; break;
+		/* API 25 */
+		case 16: type = "GSM"; break;
+		case 17: type = "UMTS (TD-SDCDMA)"; break;
+		case 18: type = "IWLAN"; break;
+		/* Temporarily allocated by custom ROMs */
+		case 30 /* NETWORK_TYPE_DCHSPAP */: type = "DC-HSPA+"; break;
+
 		}
 
-		return subtype;
+		return type;
 	}
 
 	private String humanReadableByteCount(long bytes, boolean si) {
@@ -822,7 +801,9 @@ public class NotificationService extends Service {
 			String packagename = (String) pmanager.getApplicationLabel(appInfo);
 
 			long last_rx = TrafficStats.getUidRxBytes(uid);
+			if (last_rx==0) last_rx = getStat(uid, "tcp_rcv");
 			long last_tx = TrafficStats.getUidTxBytes(uid);
+			if (last_tx==0) last_tx = getStat(uid, "tcp_snd");
 
 			if(last_rx>0||last_tx>0) {
 				App app = new App();
@@ -836,5 +817,21 @@ public class NotificationService extends Service {
 		}
 
 		return apps;
+	}
+	private long getStat(int uid, String which) {
+		String line;
+		long stats = 0;
+		try {
+			File file = new File("/proc/uid_stat/" + uid + "/" + which);
+			BufferedReader br = new BufferedReader(new FileReader(file));
+			while ((line = br.readLine()) != null) {
+				stats = Long.parseLong(line);
+			}
+			br.close();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return stats;
 	}
 }
