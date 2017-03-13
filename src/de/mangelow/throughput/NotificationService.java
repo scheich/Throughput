@@ -374,7 +374,7 @@ public class NotificationService extends Service {
 							if(in>0&&out>0)drawable = R.drawable.ic_stat_inout;
 							if(in==0&&out==0)drawable = R.drawable.ic_stat_zero;
 
-							if(showappname&&in>threshold_values[threshold]||out>threshold_values[threshold]) {
+							if(showappname&&(in>threshold_values[threshold]||out>threshold_values[threshold])) {
 
 								if(apps==null)apps = getApplications(context);
 
@@ -664,8 +664,8 @@ public class NotificationService extends Service {
 				nb.setPriority(Notification.PRIORITY_LOW);
 				nb.setAutoCancel(true);
 			}
-
-			nb.setColor(Color.BLACK);
+			
+			if (Build.VERSION.SDK_INT > 20) { nb.setColor(Color.BLACK); }				
 			nb.setSmallIcon(drawable);
 			if(ticker!=null)nb.setTicker(ticker);
 			nb.setContentTitle(title);
@@ -850,7 +850,7 @@ public class NotificationService extends Service {
 			br.close();
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
 		return stats;
 	}
