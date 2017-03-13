@@ -83,6 +83,7 @@ public class NotificationService extends Service {
 	private long last_tx = TrafficStats.getTotalTxBytes();
 
 	private LocationManager mLocationManager;
+	private LocationListener mLocationListener;
 	private Location last_location;
 	private float DISTANCEINMETERS_THRESHOLD = 250;
 	private String last_address;
@@ -142,7 +143,12 @@ public class NotificationService extends Service {
 			tmanager.listen(new MyPhoneStateListener(), PhoneStateListener.LISTEN_NONE);
 			tmanager = null;
 		}
-
+		
+		if(mLocationManager!=null) {
+			mLocationManager.removeUpdates(mLocationListener);
+			mLocationManager = null;
+		}
+		
 		if(handler!=null)handler = null;
 		if(mBroadcastReceiver!=null) {
 			unregisterReceiver(mBroadcastReceiver);
@@ -311,6 +317,7 @@ public class NotificationService extends Service {
 					}
 				}
 				else {
+					mLocationManager.removeUpdates(mLocationListener);
 					mLocationManager = null;
 					last_connection = null;
 					removeNotification();
@@ -493,11 +500,12 @@ public class NotificationService extends Service {
 							i.setType("text/plain");
 							i.putExtra(android.content.Intent.EXTRA_SUBJECT, res.getString(R.string.sharenetworkstatus));
 
-							String share_body = res.getString(R.string.nocurrentlocation);
-
+							//String share_body = res.getString(R.string.nocurrentlocation);
+							String share_body = subtitle;
+							
 							if (mLocationManager == null) {
 								mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-								mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, new LocationListener() {
+								/*mLocationListener = new LocationListener() {
 
 									@Override
 									public void onStatusChanged(String provider, int status, Bundle extras) {}								
@@ -507,8 +515,10 @@ public class NotificationService extends Service {
 									public void onProviderDisabled(String provider) {}
 									@Override
 									public void onLocationChanged(Location location) {}
-
-								});
+								};
+								mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, mLocationListener);							
+								mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, mLocationListener);
+								*/
 							}
 
 							Location current_l = getLastBestLocation(mLocationManager);
@@ -522,8 +532,7 @@ public class NotificationService extends Service {
 
 							if ( last_address.length()>0 ) {
 
-								share_body = subtitle + " - ";
-								share_body += last_address;
+								share_body += " - " + last_address;
 
 								int accuracy_inmeters = (int)current_l.getAccuracy();
 								if (accuracy_inmeters>0) { share_body += " (" + res.getString(R.string.accuracyof, String.valueOf(accuracy_inmeters)) + ")"; }								
@@ -532,6 +541,11 @@ public class NotificationService extends Service {
 
 							i.putExtra(android.content.Intent.EXTRA_TEXT, share_body);
 
+						} else {
+							if ( mLocationManager!=null ) {
+								mLocationManager.removeUpdates(mLocationListener);
+								mLocationManager = null;
+							}							
 						}
 					}
 					else {
@@ -664,7 +678,7 @@ public class NotificationService extends Service {
 				nb.setPriority(Notification.PRIORITY_LOW);
 				nb.setAutoCancel(true);
 			}
-			
+
 			if (Build.VERSION.SDK_INT > 20) { nb.setColor(Color.BLACK); }				
 			nb.setSmallIcon(drawable);
 			if(ticker!=null)nb.setTicker(ticker);
