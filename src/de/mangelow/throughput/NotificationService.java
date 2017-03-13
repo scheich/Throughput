@@ -144,8 +144,11 @@ public class NotificationService extends Service {
 			tmanager = null;
 		}
 		
-		if(mLocationManager!=null) {
+		if(mLocationListener!=null) {
 			mLocationManager.removeUpdates(mLocationListener);
+		}
+		
+		if(mLocationManager!=null) {
 			mLocationManager = null;
 		}
 		
@@ -304,7 +307,13 @@ public class NotificationService extends Service {
 				}
 				else if(showonairplanemode && isAirplaneModeOn(context)) {
 
-					mLocationManager = null;
+					if(mLocationListener!=null) {
+						mLocationManager.removeUpdates(mLocationListener);
+					}
+					
+					if(mLocationManager!=null) {
+						mLocationManager = null;
+					}
 
 					drawable = R.drawable.ic_stat_apmode;
 					title = res.getString(R.string.airplane_mode);
@@ -317,8 +326,13 @@ public class NotificationService extends Service {
 					}
 				}
 				else {
-					mLocationManager.removeUpdates(mLocationListener);
-					mLocationManager = null;
+					if(mLocationListener!=null) {
+						mLocationManager.removeUpdates(mLocationListener);
+					}
+					
+					if(mLocationManager!=null) {
+						mLocationManager = null;
+					}
 					last_connection = null;
 					removeNotification();
 				}
@@ -542,8 +556,11 @@ public class NotificationService extends Service {
 							i.putExtra(android.content.Intent.EXTRA_TEXT, share_body);
 
 						} else {
-							if ( mLocationManager!=null ) {
+							if(mLocationListener!=null) {
 								mLocationManager.removeUpdates(mLocationListener);
+							}
+							
+							if(mLocationManager!=null) {
 								mLocationManager = null;
 							}							
 						}
