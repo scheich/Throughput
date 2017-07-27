@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="refresh">
+        <item>500 ms</item>
+        <item>750 ms</item>
+        <item>seconde</item>
+        <item>2 secondes</item>
+        <item>3 secondes</item>
+    </string-array>
+
+    <integer-array name="refresh_values">
+        <item>500</item>
+        <item>750</item>
+        <item>1000</item>
+        <item>2000</item>
+        <item>3000</item>
+    </integer-array>
+
+     <string-array name="threshold">
+        <item>>0 bytes (bits)</item>
+        <item>>256 bytes (2048 bits)</item>
+        <item>>512 bytes (4096 bits)</item>
+        <item>>1024 bytes (8192 bits)</item>
+        <item>>2048 bytes (16384 bits)</item>
+        <item>>4096 bytes (32768 bits)</item>
+    </string-array>
+
+    <integer-array name="threshold_values">
+        <item>0</item>
+        <item>256</item>
+        <item>512</item>
+        <item>1024</item>
+        <item>2048</item>
+        <item>4096</item>
+    </integer-array>
+
+    <string-array name="ontap">
+        <item>Ouvrez le paramètre système correspondant</item>
+        <item>Ouvrir cette application</item>
+        <item>Partager l\'état du réseau</item>
+        <item>Ouvrir les infos sur l\'App la plus active (le cas échéant)</item>
+        <item>Ne rien faire</item>
+    </string-array>
+
+</resources>
