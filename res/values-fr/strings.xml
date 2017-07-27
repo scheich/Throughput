@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Throughput</string>
+    <string name="in">Entrant</string>
+    <string name="out">Descendant</string>
+    <string name="traffic_unsupported">Votre appareil ne prend pas en charge la surveillance des statistiques de trafic.</string>
+    <string name="airplane_mode">Mode Avion</string>
+    <string name="enable">Activer</string>
+    <string name="enable_text">Activer pour commencer dès maintenant ainsi qu\'à chaque démarrage.</string>
+    <string name="showonairplanemode">Aussi en mode avion</string>
+    <string name="showonairplanemode_text">Afficher la notification également en mode avion</string>
+    <string name="showticker">Alerte</string>
+    <string name="showticker_text">Afficher une alerte lors d\'un changement de réseau</string>
+    <string name="showsignalstrength">Force du signal</string>
+    <string name="showsignalstrength_text">Montrer la puissance du signal en % (possiblement incorrecte)</string>
+    <string name="showssidsubtype">Type de réseau</string>
+    <string name="showssidsubtype_text">Afficher votre type de réseau actuel ou le nom du point d\'accès</string>
+    <string name="showwifilinkspeed">Vitesse du Wifi</string>
+    <string name="showwifilinkspeed_text">Afficher le débit Wifi théorique possible</string>
+    <string name="showipaddress">Adresse IPV4</string>
+    <string name="showipaddress_text">Afficher votre adresse IPV4</string>
+    <string name="showcells">Nombre de cellules voisines</string>
+    <string name="showcells_text">Afficher le nombre de cellules voisines (peut être incorrect)</string>
+    <string name="showbitsorbytes">Bits ou Bytes?</string>
+    <string name="showbitsorbytes_text">Décocher pour utiliser les bits</string>
+    <string name="refresh">Actualiser tous les </string>
+    <string name="ontap">Action au toucher</string>
+    <string name="threshold">Seuil</string>
+    <string name="showappname">App la plus active</string>
+    <string name="showappname_text">Afficher le nom de l\'application la plus active (+x autres)</string>
+    <string name="sharenetworkstatus">Partager l\'état du réseau</string>
+    <string name="nocurrentlocation">Impossible d\'obtenir l\'emplacement actuel</string>
+    <string name="accuracyof">précision de %sm</string>
+
+    <plurals name="cells">
+        <item quantity="zero">0 cellule</item>
+        <item quantity="one">1 cellule</item>
+        <item quantity="other">%d cellules</item>
+    </plurals>
+
+</resources>

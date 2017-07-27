@@ -4,9 +4,9 @@
     <string-array name="refresh">
         <item>500 ms</item>
         <item>750 ms</item>
-        <item>second</item>
-        <item>2 seconds</item>
-        <item>3 seconds</item>
+        <item>seconde</item>
+        <item>2 secondes</item>
+        <item>3 secondes</item>
     </string-array>
 
     <integer-array name="refresh_values">
@@ -36,11 +36,11 @@
     </integer-array>
 
     <string-array name="ontap">
-        <item>Open the corresponding system setting</item>
-        <item>Open this app</item>
-        <item>Share network status</item>
-        <item>Open app info of most active app (if any)</item>
-        <item>Do nothing</item>
+        <item>Ouvrez le paramètre système correspondant</item>
+        <item>Ouvrir cette application</item>
+        <item>Partager l\'état du réseau</item>
+        <item>Ouvrir les infos sur l\'App la plus active (le cas échéant)</item>
+        <item>Ne rien faire</item>
     </string-array>
 
 </resources>
