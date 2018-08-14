@@ -6,7 +6,7 @@
     <string name="traffic_unsupported">Dein Gerät scheint das Messen des Durchsatzes nicht zu unterstützen.</string>
     <string name="airplane_mode">Flugmodus</string>
     <string name="enable">Einschalten</string>
-    <string name="enable_text">Aktivieren um jetzt zu starten und beim Booten.</string>
+    <string name="enable_text">Aktivieren um die App jetzt und beim Booten immer zu starten.</string>
     <string name="showonairplanemode">Auch im Flugmodus</string>
     <string name="showonairplanemode_text">Zeige die Benachrichtigung auch im Flugmodus</string>
     <string name="showticker">Tickerbenachrichtung</string>
