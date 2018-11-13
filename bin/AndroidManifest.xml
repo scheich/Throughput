@@ -16,7 +16,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="de.mangelow.throughput"
     android:versionCode="17"
-    android:versionName="0.79" >
+    android:versionName="0.78" >
 
     <uses-sdk
         android:minSdkVersion="8"
