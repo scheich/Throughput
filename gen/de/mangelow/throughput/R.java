@@ -9,9 +9,11 @@ package de.mangelow.throughput;
 
 public final class R {
     public static final class array {
-        public static final int ontap=0x7f030002;
+        public static final int ontap=0x7f030004;
         public static final int refresh=0x7f030000;
         public static final int refresh_values=0x7f030001;
+        public static final int threshold=0x7f030002;
+        public static final int threshold_values=0x7f030003;
     }
     public static final class attr {
     }
@@ -27,14 +29,19 @@ public final class R {
         public static final int cells=0x7f050000;
     }
     public static final class string {
+        public static final int accuracyof=0x7f04001e;
         public static final int airplane_mode=0x7f040004;
         public static final int app_name=0x7f040000;
         public static final int enable=0x7f040005;
         public static final int enable_text=0x7f040006;
         public static final int in=0x7f040001;
+        public static final int nocurrentlocation=0x7f04001d;
         public static final int ontap=0x7f040018;
         public static final int out=0x7f040002;
         public static final int refresh=0x7f040017;
+        public static final int sharenetworkstatus=0x7f04001c;
+        public static final int showappname=0x7f04001a;
+        public static final int showappname_text=0x7f04001b;
         public static final int showbitsorbytes=0x7f040015;
         public static final int showbitsorbytes_text=0x7f040016;
         public static final int showcells=0x7f040013;
@@ -51,6 +58,7 @@ public final class R {
         public static final int showticker_text=0x7f04000a;
         public static final int showwifilinkspeed=0x7f04000f;
         public static final int showwifilinkspeed_text=0x7f040010;
+        public static final int threshold=0x7f040019;
         public static final int traffic_unsupported=0x7f040003;
     }
 }

@@ -267,20 +267,22 @@ public class MainActivity extends PreferenceActivity {
 			}
 		});
 		pc_settings.addPreference(cbp_showbitsorbytes);
-
-		final CheckBoxPreference cbp_showappname = new CheckBoxPreference(context);
-		cbp_showappname.setTitle(res.getString(R.string.showappname));
-		cbp_showappname.setSummary(res.getString(R.string.showappname_text));
-		cbp_showappname.setChecked(showappname);
-		cbp_showappname.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-			public boolean onPreferenceChange(Preference p, Object o) {
-				boolean newvalue = Boolean.parseBoolean(o.toString());
-				saveBooleanPref(context, SHOWAPPNAME, newvalue);				
-				return true;
-			}
-		});
-		pc_settings.addPreference(cbp_showappname);
-
+		
+		if(Build.VERSION.SDK_INT<18) {			
+			final CheckBoxPreference cbp_showappname = new CheckBoxPreference(context);
+			cbp_showappname.setTitle(res.getString(R.string.showappname));
+			cbp_showappname.setSummary(res.getString(R.string.showappname_text));
+			cbp_showappname.setChecked(showappname);
+			cbp_showappname.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+				public boolean onPreferenceChange(Preference p, Object o) {
+					boolean newvalue = Boolean.parseBoolean(o.toString());
+					saveBooleanPref(context, SHOWAPPNAME, newvalue);				
+					return true;
+				}
+			});
+			pc_settings.addPreference(cbp_showappname);			
+		}
+		
 		int refresh = loadIntPref(context, REFRESH, REFRESH_DEFAULT);
 
 		final String [] refresh_entries = res.getStringArray(R.array.refresh);

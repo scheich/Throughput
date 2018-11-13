@@ -91,7 +91,8 @@ public class NotificationService extends Service {
 	private ArrayList<App> apps;
 
 	private boolean screenOff = false;
-
+	private boolean isRunning = false;
+	
 	private int MAX_CHAR = 18;
 
 	private ResultReceiver mResultReceiver;
@@ -152,7 +153,10 @@ public class NotificationService extends Service {
 			mLocationManager = null;
 		}
 		
-		if(handler!=null)handler = null;
+		if(handler!=null) {
+			isRunning = false;
+			handler = null;
+		}
 		if(mBroadcastReceiver!=null) {
 			unregisterReceiver(mBroadcastReceiver);
 			mBroadcastReceiver = null;
@@ -163,7 +167,9 @@ public class NotificationService extends Service {
 	private final Runnable mRunnable = new Runnable() {
 
 		public void run() {
-
+			
+			isRunning = true;
+			
 			int drawable = R.drawable.ic_stat_zero;
 			String ticker = null;
 			String title = "";
@@ -663,7 +669,7 @@ public class NotificationService extends Service {
 				int [] refresh_values = res.getIntArray(R.array.refresh_values);
 				long refresh = (long) refresh_values[MainActivity.loadIntPref(context, MainActivity.REFRESH, MainActivity.REFRESH_DEFAULT)];
 
-				if(handler!=null)handler.postDelayed(mRunnable, refresh);
+				if(handler!=null&&!isRunning)handler.postDelayed(mRunnable, refresh);
 			}
 
 		}
