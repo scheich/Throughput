@@ -91,7 +91,6 @@ public class NotificationService extends Service {
 	private ArrayList<App> apps;
 
 	private boolean screenOff = false;
-	private boolean isRunning = false;
 	
 	private int MAX_CHAR = 18;
 
@@ -154,7 +153,6 @@ public class NotificationService extends Service {
 		}
 		
 		if(handler!=null) {
-			isRunning = false;
 			handler = null;
 		}
 		if(mBroadcastReceiver!=null) {
@@ -167,8 +165,6 @@ public class NotificationService extends Service {
 	private final Runnable mRunnable = new Runnable() {
 
 		public void run() {
-			
-			isRunning = true;
 			
 			int drawable = R.drawable.ic_stat_zero;
 			String ticker = null;
@@ -586,7 +582,10 @@ public class NotificationService extends Service {
 
 				//
 
-				if(handler!=null&&!screenOff&&enabled)handler.postDelayed(mRunnable, refresh);
+				if(handler!=null&&!screenOff&&enabled) {
+					if(D)Log.d(TAG, "UPDATING");
+					handler.postDelayed(mRunnable, refresh);
+				}
 
 			}
 			catch (Exception e){
@@ -669,7 +668,10 @@ public class NotificationService extends Service {
 				int [] refresh_values = res.getIntArray(R.array.refresh_values);
 				long refresh = (long) refresh_values[MainActivity.loadIntPref(context, MainActivity.REFRESH, MainActivity.REFRESH_DEFAULT)];
 
-				if(handler!=null&&!isRunning)handler.postDelayed(mRunnable, refresh);
+				if(handler!=null) {
+			        handler.removeCallbacks(mRunnable); 
+					handler.postDelayed(mRunnable, refresh);
+				}
 			}
 
 		}
